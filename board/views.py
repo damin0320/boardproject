@@ -8,7 +8,7 @@ from .models import Board
 from member.models import Member
 from utils.decorators import auth_check, user_check
 
-class CreateBoardView(View):
+class BoardView(View):
     @user_check
     def post(self, request):
         data = json.loads(request.body)
@@ -22,8 +22,6 @@ class CreateBoardView(View):
         )
         return JsonResponse({'message' : 'SUCCESS'}, status=201)
 
-
-class ReadBoardView(View):
     @user_check
     def get(self, request):
         postings = Board.objects.all()
@@ -41,18 +39,18 @@ class ReadBoardView(View):
             result.append(my_dict)
         return JsonResponse({'result' : result}, status=201)
 
-
-class UpdateBoardView(View):
     @user_check
-    def post(self, request):
+    def put(self, request):
+        data = json.loads(request.body)
         member_id = request.member.id
-        postings = Board.objects.get(id=member_id)
+        postings = Board.objects.get(author=member_id)
+        postings.title = data.get('title')
+        postings.content = data.get('content')
+        postings.save()
         return JsonResponse({'message' : 'SUCCESS'}, status=201)
-
-
-class DeleteBoardView(View):
     @user_check
     def delete(self, request):
         member_id = request.member.id
-        postings = Board.objects.get(id=member_id)
+        postings = Board.objects.filter(author=member_id)
+        postings.delete()
         return JsonResponse({'message': 'SUCCESS'}, status=201)
